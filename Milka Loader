@@ -1,27 +1,44 @@
 local player = game.Players.LocalPlayer
+
+-- Nom du fichier qui va stocker la clé
+local keyFile = "milka_key.txt"
+
+-- Clé valide
+local validKey = "https://discord.gg/RJC3sFKVkn"
+
+-- Vérifie si l’exécuteur supporte la sauvegarde
+local canSave = writefile and readfile and isfile
+
+-- Vérifie si un fichier avec la clé existe déjà
+local savedKey
+if canSave and isfile(keyFile) then
+    savedKey = readfile(keyFile)
+end
+
+-- Si la clé est déjà correcte → charger direct
+if savedKey == validKey then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/StarTradeBr/MilkaLoader/refs/heads/main/Milka%20Loader.lua"))()
+    return
+end
+
+-- Sinon, on lance ton interface
 local screenGui = Instance.new("ScreenGui")
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Création de la popup frame centrée
+-- Frame principale
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0, 400, 0, 180)
 frame.Position = UDim2.new(0.5, 0, 0.5, 0)
 frame.AnchorPoint = Vector2.new(0.5, 0.5)
 frame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
 frame.BorderSizePixel = 0
-frame.BackgroundTransparency = 1 -- pour fade-in
 frame.Parent = screenGui
 
--- Coins arrondis de la frame
 local frameUICorner = Instance.new("UICorner")
 frameUICorner.CornerRadius = UDim.new(0, 15)
 frameUICorner.Parent = frame
-
--- Animation fade-in
-for i = 0, 1, 0.05 do
-    frame.BackgroundTransparency = 1 - i
-    task.wait(0.01)
-end
 
 -- Titre
 local title = Instance.new("TextLabel")
@@ -34,7 +51,7 @@ title.TextScaled = true
 title.Font = Enum.Font.GothamBold
 title.Parent = frame
 
--- Champ de texte pour la clé
+-- Champ de texte
 local textBox = Instance.new("TextBox")
 textBox.Size = UDim2.new(0.8, 0, 0, 40)
 textBox.Position = UDim2.new(0.1, 0, 0.3, 0)
@@ -43,13 +60,11 @@ textBox.TextScaled = true
 textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 55)
 textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 textBox.ClearTextOnFocus = false
+textBox.Parent = frame
 
--- Coins arrondis du TextBox
 local textBoxCorner = Instance.new("UICorner")
 textBoxCorner.CornerRadius = UDim.new(0, 10)
 textBoxCorner.Parent = textBox
-
-textBox.Parent = frame
 
 -- Feedback label
 local feedback = Instance.new("TextLabel")
@@ -71,13 +86,11 @@ getKeyButton.TextScaled = true
 getKeyButton.BackgroundColor3 = Color3.fromRGB(100, 100, 255)
 getKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 getKeyButton.Font = Enum.Font.GothamBold
+getKeyButton.Parent = frame
 
--- Coins arrondis bouton Get Key
 local getKeyCorner = Instance.new("UICorner")
 getKeyCorner.CornerRadius = UDim.new(0, 10)
 getKeyCorner.Parent = getKeyButton
-
-getKeyButton.Parent = frame
 
 -- Bouton Submit Key
 local submitKeyButton = Instance.new("TextButton")
@@ -88,21 +101,20 @@ submitKeyButton.TextScaled = true
 submitKeyButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
 submitKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 submitKeyButton.Font = Enum.Font.GothamBold
+submitKeyButton.Parent = frame
 
--- Coins arrondis bouton Submit Key
 local submitKeyCorner = Instance.new("UICorner")
 submitKeyCorner.CornerRadius = UDim.new(0, 10)
 submitKeyCorner.Parent = submitKeyButton
 
-submitKeyButton.Parent = frame
-
--- Clé valide
-local validKey = "https://discord.gg/RJC3sFKVkn"
-
 -- Fonction Get Key
 getKeyButton.MouseButton1Click:Connect(function()
-    setclipboard("https://loot-link.com/s?X43H0ICh")
-    feedback.Text = "✅ Link for Get Key copied on your keyboard!"
+    if setclipboard then
+        setclipboard("https://loot-link.com/s?X43H0ICh")
+        feedback.Text = "✅ Link copied to clipboard!"
+    else
+        feedback.Text = "⚠️ Your executor doesn't support setclipboard."
+    end
     task.delay(2, function()
         feedback.Text = ""
     end)
@@ -114,6 +126,10 @@ submitKeyButton.MouseButton1Click:Connect(function()
     if enteredKey == validKey then
         feedback.Text = "✅ Key correct! Loading script..."
         task.delay(1, function()
+            -- Sauvegarde seulement si supporté
+            if canSave then
+                writefile(keyFile, enteredKey)
+            end
             loadstring(game:HttpGet("https://raw.githubusercontent.com/StarTradeBr/MilkaLoader/refs/heads/main/Milka%20Loader.lua"))()
             screenGui:Destroy()
         end)
